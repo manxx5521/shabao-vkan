@@ -92,16 +92,16 @@ $(function() {
 				var index = parent.layer.getFrameIndex(window.name); //获取窗口索引
 				var fileId=$('input[name="fileId"]').val();
 				$('#operation_ok').click(function(){
-					page.ajax(webroot + "/vkan/saveTag.html",fileId,index);
+					page.ajax(webroot + "/vkan/saveTag.json",fileId,index);
 				})
 				
 				
 				$('#operation_zadd').click(function(){
-					page.ajax(webroot + "/vkan/saveChildTag.hmtl",fileId,index,{'type':1});
+					page.ajax(webroot + "/vkan/saveChildTag.json",fileId,index,{'type':1});
 				})
 				
 				$('#operation_zdel').click(function(){
-					page.ajax(webroot + "/vkan/saveChildTag.hmtl",fileId,index,{'type':2});
+					page.ajax(webroot + "/vkan/saveChildTag.json",fileId,index,{'type':2});
 				})
 				
 				$('#operation_cancel').click(function(){

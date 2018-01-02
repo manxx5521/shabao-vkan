@@ -133,14 +133,14 @@ $(function() {
 					if(!!fileDto.coverPath){
 						path=rspath(fileDto.coverPath);
 					}else{
-						path=webroot+"/resources/vkan/image/type_dir.png";
+						path=webroot+"/static/vkan/image/type_dir.png";
 					}
 				}else if(fileType==2){
 					path=rspath(fileDto.path);
 				}else if(fileType==3){
-					path=webroot+"/resources/vkan/image/type_video.png";
+					path=webroot+"/static/vkan/image/type_video.png";
 				}else{
-					path=webroot+"/resources/vkan/image/type_other.png";
+					path=webroot+"/static/vkan/image/type_other.png";
 				}
 				
 				
@@ -269,7 +269,7 @@ $(function() {
 					});
 				
 				page.infScroll.on( 'load', function(response, path ) {
-					  console.log( response )
+//					  console.log( response )
 					  var data = JSON.parse( response );
 					  
 					  var html="";
@@ -316,7 +316,7 @@ $(function() {
 					page.appendSelectTag(fileId,1,function(){
 						$.ajax({
 							type : "POST",
-							url : webroot + "/vkan/tag/getlabelTag.html",
+							url : webroot + "/vkan/tag/getlabelTag.json",
 							dataType : "json",
 							data:{'fileId':fileId},
 							success : function(data) {
@@ -343,7 +343,7 @@ $(function() {
 					var fileId = this.attributes.fid.value;
 					$.ajax({
 						type : "POST",
-						url : webroot + "/vkan/file/setFileCover.html",
+						url : webroot + "/vkan/file/setFileCover.json",
 						dataType : "json",
 						data:{'fileId':fileId},
 						success : function(result) {
@@ -397,7 +397,7 @@ $(function() {
 				var prefixPath=$('select[name="projectPrefix"]').val();
 				$.ajax({
 					type : "POST",
-					url : webroot + "/vkan/file/openFile.html",
+					url : webroot + "/vkan/file/openFile.json",
 					dataType : "json",
 					data:{'fileId':fileId,'prefixPath':prefixPath,'type':type},
 					success : function(result) {
