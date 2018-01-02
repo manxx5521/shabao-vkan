@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xiaoshabao.vkan.mapper.FileMapper">
+	<sql id="fileColumns">
+		vk_file.file_id,vk_file.project_id
+		,vk_file.project_tag
+		,vk_file.file_name,vk_file.path
+		,vk_file.md5,vk_file.file_type
+		,vk_file.parent_id
+		,vk_file.cover_id
+		,vk_file.child_number
+		,vk_file.show
+		,vk_file.update_time
+	</sql>
+	<sql id="fileColumnsRef">
+		${prefix}.file_id,${prefix}.project_id
+		,${prefix}.file_name,${prefix}.path
+		,${prefix}.project_tag
+		,${prefix}.md5,${prefix}.file_type
+		,${prefix}.parent_id
+		,${prefix}.cover_id
+		,${prefix}.child_number
+		,${prefix}.show
+		,${prefix}.update_time
+	</sql>
+
+	<insert id="insert">
+		insert into vk_file
+		(file_id,project_id,file_name,path,md5,file_type,parent_id,update_time)
+		values
+		(#{fileId,jdbcType=NUMERIC},#{projectId,jdbcType=NUMERIC},#{fileName,jdbcType=VARCHAR},
+		#{path,jdbcType=VARCHAR},
+		#{md5,jdbcType=VARCHAR},
+		#{fileType,jdbcType=NUMERIC},
+		#{parentId,jdbcType=NUMERIC},SYSDATE())
+	</insert>
+	
+	<!-- 更新 -->
+	<update id="update">
+		update vk_file 
+		<set>
+			<if test="coverId !=null">
+			cover_id=#{coverId},
+			</if>
+		</set>
+		where file_id=#{fileId}
+	</update>
+	
+	<select id="getFileEntity" resultType="com.xiaoshabao.vkan.entity.FileEntity"
+		parameterType="com.xiaoshabao.vkan.entity.FileEntity">
+		select
+		<include refid="fileColumns" />
+		from vk_file
+		<where>
+			<if test="fileId != null and fileId !=''">
+				and file_id=#{fileId}
+			</if>
+			<if test="projectId != null and projectId !=''">
+				and project_id=#{projectId}
+			</if>
+			<if test="fileName != null and fileName !=''">
+				and file_name=#{fileName}
+			</if>
+			<if test="path != null and path !=''">
+				and path=#{path}
+			</if>
+			<if test="md5 != null and md5 !=''">
+				and md5=#{md5}
+			</if>
+			<if test="fileType != null and fileType !=''">
+				and file_type=#{fileType}
+			</if>
+			<if test="parentId != null and parentId !=''">
+				and parent_id=#{parentId}
+			</if>
+		</where>
+	</select>
+	<select id="getFileEntityById" resultType="com.xiaoshabao.vkan.entity.FileEntity">
+		select
+		<include refid="fileColumns" />
+		from vk_file
+		where file_id=#{id}
+	</select>
+	
+	
+	<select id="getPageFileDto" resultType="com.xiaoshabao.vkan.dto.FileDto"
+		parameterType="com.xiaoshabao.vkan.dto.FilePagingParams">
+		select
+			<include refid="fileColumns" />
+		from vk_file
+		left join vk_file_type b
+		on vk_file.file_type=b.type_id
+		<where>
+			<if test="tagIds!=null">
+			<foreach collection="tagIds" item="list" index="index">
+				<if test="list!=null">
+				and exists (
+					select 1 from vk_file_tag a
+					where vk_file.file_id=a.file_id
+						and a.tag_id in
+						<foreach collection="list" item="item" index="index" open="(" separator="," close=")">  
+		        		  #{item}
+		    			</foreach>
+					)
+				</if>  
+			</foreach>
+			</if>
+			<if test="parentId != null and searchType!=2 ">
+				and vk_file.parent_id=#{parentId}
+			</if>
+			<if test="projectId != null">
+				and vk_file.project_id=#{projectId}
+			</if>
+		</where>
+		order by b.order_no
+	</select>
+</mapper>

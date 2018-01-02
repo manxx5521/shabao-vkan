@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xiaoshabao.vkan.mapper.FileTagMapper">
+	<!-- 删除 -->
+	<delete id="delete">
+	  delete from vk_file_tag
+	  <where>
+	  	<if test="fileId !=null">
+			and file_id=#{fileId}
+		</if>
+		<if test="tagId !=null">
+			and tag_id=#{tagId}
+		</if>
+	  </where>
+	</delete>
+	
+	<insert id="insertTagByListId">
+		insert into vk_file_tag
+		(id,file_id,tag_id)
+		values
+		<foreach collection="tagIds" item="item" index="index" separator=",">  
+	    	(null,#{fileId},#{item})
+	    </foreach>
+	</insert>
+
+	<insert id="insertTagByParentId">
+		insert into vk_file_tag
+		(id,file_id,tag_id)
+		select null,a.file_id,#{tagId}
+		from vk_file a where a.parent_id=#{parentId}
+		and a.file_id not in (
+			select b.file_id from vk_file_tag b where b.file_id=a.file_id
+			and b.tag_id=#{tagId}
+			)
+	</insert>
+	<delete id="deleteTagByParentId">
+		delete from vk_file_tag
+		where 
+		 tag_id=#{tagId}
+	     and file_id in (
+			select b.file_id from vk_file b where b.parent_id=#{parentId}
+			)
+	</delete>
+
+</mapper>

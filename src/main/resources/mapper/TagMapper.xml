@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xiaoshabao.vkan.mapper.TagMapper">
+	<sql id="tagColumns">
+		vk_tag.tag_id
+		,vk_tag.name
+		,vk_tag.icon
+		,vk_tag.type
+		,vk_tag.level
+		,vk_tag.parent_id
+		,multiple
+		,vk_tag.file_show
+		,vk_tag.file_order
+		,vk_tag.used
+		,vk_tag.order_no
+	</sql>
+	<sql id="tagColumnsRef">
+		${prefix}.tag_id
+		,${prefix}.name
+		,${prefix}.icon
+		,${prefix}.type
+		,${prefix}.level
+		,${prefix}.parent_id
+		,${prefix}.multiple
+		,${prefix}.file_show
+		,${prefix}.file_order
+		,${prefix}.used
+		,${prefix}.order_no
+	</sql>
+
+	
+	<select id="getTagEntity" resultType="com.xiaoshabao.vkan.entity.TagEntity"
+		parameterType="com.xiaoshabao.vkan.entity.TagEntity">
+		select
+		<include refid="tagColumns" />
+		from vk_tag
+		<where>
+			<if test="parentId != null and parentId !=''">
+				and parent_id=#{parentId}
+			</if>
+		</where>
+		order by level,order_no
+	</select>
+	
+	<select id="getTagEntityList" resultType="com.xiaoshabao.vkan.entity.TagEntity"
+		parameterType="com.xiaoshabao.vkan.entity.TagEntity">
+		select
+		<include refid="tagColumns" />
+		from vk_tag
+		<where>
+			<if test="parentId != null and parentId !=''">
+				and parent_id=#{parentId}
+			</if>
+		</where>
+		order by level,order_no
+	</select>
+	
+	<select id="getlabelTag" resultType="com.xiaoshabao.vkan.entity.TagEntity"
+		parameterType="com.xiaoshabao.vkan.entity.TagEntity">
+		select
+		<include refid="tagColumns" />
+		from vk_tag
+		where vk_tag.file_show='1'
+			and exists (
+					select 1 from vk_file_tag a
+					where vk_tag.tag_id=a.tag_id
+					and a.file_id =#{fileId}
+				)
+		order by file_order,order_no
+	</select>
+	
+	<select id="getTagDtoList" resultType="com.xiaoshabao.vkan.dto.TagDto"
+		parameterType="java.util.Map">
+		select
+			<include refid="tagColumns" />
+			,case 
+				when b.tag_id is null then 0
+				else 1
+			 end selected
+		from vk_tag
+		left join vk_file_tag b
+		 on b.tag_id=vk_tag.tag_id 
+		 	<if test="fileId != null">
+		 	and b.file_id=#{fileId}
+		 	</if>
+		order by level,order_no
+	</select>
+
+</mapper>
