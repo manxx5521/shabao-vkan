@@ -84,14 +84,6 @@
 		</dependency>
 		<!-- commons 功能包 end -->
 		
-		
-		<!-- 状态机
-		<dependency>
-			<groupId>org.springframework.statemachine</groupId>
-			<artifactId>spring-statemachine-core</artifactId>
-			<version>1.2.7.RELEASE</version>
-		</dependency>
-		  -->
 	</dependencies>
 	
 	<build>
