@@ -29,7 +29,17 @@ public class WebConfig  extends WebMvcConfigurerAdapter {
         registry.addResourceHandler("/public/**").addResourceLocations(ResourceUtils.CLASSPATH_URL_PREFIX+"/public/");  
         
 		// 可以直接使用addResourceLocations 指定磁盘绝对路径，同样可以配置多个位置，注意路径写法需要加上file:
+        registry.addResourceHandler("/d/**").addResourceLocations("file:D:/vm/");
         registry.addResourceHandler("/e/**").addResourceLocations("file:E:/vm/");
+        registry.addResourceHandler("/f/**").addResourceLocations("file:F:/vm/");
+        registry.addResourceHandler("/g/**").addResourceLocations("file:G:/vm/");
+        registry.addResourceHandler("/h/**").addResourceLocations("file:H:/vm/");
+        registry.addResourceHandler("/i/**").addResourceLocations("file:I:/vm/");
+        registry.addResourceHandler("/j/**").addResourceLocations("file:J:/vm/");
+        registry.addResourceHandler("/k/**").addResourceLocations("file:K:/vm/");
+        registry.addResourceHandler("/l/**").addResourceLocations("file:L:/vm/");
+        registry.addResourceHandler("/m/**").addResourceLocations("file:M:/vm/");
+        registry.addResourceHandler("/n/**").addResourceLocations("file:N:/vm/");
         super.addResourceHandlers(registry);
     }
 	
