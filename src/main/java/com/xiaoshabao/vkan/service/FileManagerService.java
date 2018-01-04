@@ -22,7 +22,18 @@ public interface FileManagerService{
 	 */
 	AjaxResult openFile(Long fileId,String prefixPath, Integer type);
 	
+	/**
+	 * 设置成视频目录
+	 * @param prarentId
+	 */
+	public void setVideoProject(Long parentId,String prefixPath);
 	
+	/**
+	 * 更新文件
+	 * @param prarentId
+	 * @param prefixPath
+	 */
+	public  void updateFiles(Long parentId,String prefixPath);
 	/**
 	 * 设置封面
 	 * @param fileId

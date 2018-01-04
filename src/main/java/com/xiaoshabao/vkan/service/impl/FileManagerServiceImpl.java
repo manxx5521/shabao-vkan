@@ -4,9 +4,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +80,7 @@ public class FileManagerServiceImpl implements FileManagerService {
 	//打开文件
 	@Override
 	public AjaxResult openFile(Long fileId, String prefixPath, Integer type) {
-		String path=getFilePahtById(fileId, prefixPath);
+		String path=getFilePahtById(fileId, prefixPath).getFilePah();
 		
 		//上级目录
 //		path=path.substring(0, path.lastIndexOf(File.separator));
@@ -102,7 +106,7 @@ public class FileManagerServiceImpl implements FileManagerService {
 	 * @param prefixPath
 	 * @return
 	 */
-	private String getFilePahtById(Long fileId, String prefixPath) {
+	private PathInfo getFilePahtById(Long fileId, String prefixPath) {
 		FileEntity fileReq=new FileEntity();
 		fileReq.setFileId(fileId);
 		FileEntity file=this.fileMapper.getFileEntity(fileReq);
@@ -116,18 +120,139 @@ public class FileManagerServiceImpl implements FileManagerService {
 		if(project==null) {
 			throw new MsgErrorException("未能根据id找到对应项目");
 		}
-		
-		return prefixPath+project.getProjectPath()+file.getPath();
+		PathInfo info=new PathInfo();
+		info.setProjectPrefix(prefixPath);
+		info.setProjectPath(project.getProjectPath());
+		info.setFilePah(prefixPath+project.getProjectPath()+file.getPath());
+		info.setProjectId(project.getProjectId());
+		info.setParentId(fileId);
+		return info;
 	}
+	
 	
 	/**
 	 * 设置成视频目录
 	 * @param prarentId
 	 */
-	public void setVideoProject(Long prarentId,String prefixPath) {
-//		String path =this.getFilePahtById(prarentId, prefixPath);
+	@Override
+	public void setVideoProject(Long parentId,String prefixPath) {
+		FileEntity fileReq=new FileEntity();
+		fileReq.setParentId(parentId);
+		List<FileEntity> list=this.fileMapper.getFileEntityList(fileReq);
+		List<FileEntity> findList=new ArrayList<FileEntity>(list);
+		if(list==null||list.size()<1) {
+			return;
+		}
 		
+		for(FileEntity file:list) {
+			if(file.getFileType()==FileType.VIDEO.getCode()) {
+				String cover=findCoverStr(FilenameUtils.getBaseName(file.getFileName()),findList);
+				if(StringUtils.isNotEmpty(cover)) {
+					FileEntity update=new FileEntity();
+					update.setFileId(file.getFileId());
+					update.setCoverId(cover);
+					this.fileMapper.update(update);
+				}
+			}
+		}
 		
+	}
+	
+	/**
+	 * 找到封面字符串
+	 * @param fileName
+	 * @param list
+	 * @return
+	 */
+	private String findCoverStr(String fileName,List<FileEntity> list) {
+		StringBuilder result=new StringBuilder();
+		Iterator<FileEntity> iterator=list.iterator();
+		while(iterator.hasNext()) {
+			FileEntity file=iterator.next();
+			if(file.getFileType()!=FileType.VIDEO.getCode()&&file.getFileName().startsWith(fileName)) {
+				if(result.length()>0) {
+					result.append(",");
+				}
+				result.append(file.getFileId());
+				if(file.getShow()==null||file.getShow()==true) {
+					FileEntity update=new FileEntity();
+					update.setFileId(file.getFileId());
+					update.setShow(false);
+					this.fileMapper.update(update);
+				}
+			}
+		}
+		return result.toString();
+	}
+	
+	/**
+	 * 更新文件
+	 * @param prarentId
+	 * @param prefixPath
+	 */
+	@Override
+	public  void updateFiles(Long parentId,String prefixPath) {
+		PathInfo pathInfo =this.getFilePahtById(parentId, prefixPath);
+		File fileRoot=new File(pathInfo.getFilePah());
+		List<String> md5s=new ArrayList<String>(fileRoot.listFiles().length);
+		List<String> dirs=new ArrayList<String>();
+		
+		for(File file:fileRoot.listFiles()) {
+			String md5 = null;
+			int fileTypeCode = 9;
+			if (file.isFile()) {
+				try (InputStream inputStream = new FileInputStream(file)) {
+					md5 = DigestUtils.md5Hex(inputStream);
+				} catch (IOException e) {
+					logger.error("获取文件{}  MD5时出现错误", pathInfo.getFilePah(), e);
+				}
+				fileTypeCode = FileType.getCodeByName(file.getName());
+			} else {
+				fileTypeCode = FileType.DIRECTORY.getCode();
+			}
+			
+			String fileName = file.getName();
+			String filePath = file.getAbsolutePath();
+			filePath=filePath.replace(pathInfo.getProjectPrefix() + pathInfo.getProjectPath(), "");
+			
+			FileEntity fileReq=new FileEntity();
+			if(md5==null) {
+				fileReq.setFileName(fileName);
+				dirs.add(fileName);
+			}else {
+				fileReq.setMd5(md5);
+				md5s.add(md5);
+			}
+			fileReq.setParentId(parentId);
+			FileEntity fileEntity=fileMapper.getFileEntity(fileReq);
+			if(fileEntity!=null&&md5!=null&&!fileName.equals(fileEntity.getFileName())) {
+				//重新比对文件名,文件名修改，重新修改文件名
+				fileEntity.setFileName(fileName);
+				fileMapper.update(fileEntity);
+			}else if(fileEntity==null){
+				//新增
+				FileEntity newFile = new FileEntity();
+				newFile.setProjectId(pathInfo.getProjectId());
+				newFile.setFileName(fileName);
+				newFile.setPath(filePath);
+				long fileId = SnowflakeUtil.nextId();
+				newFile.setFileId(fileId);
+				newFile.setMd5(md5);
+				newFile.setFileType(fileTypeCode);
+				newFile.setParentId(pathInfo.getParentId());
+				this.fileMapper.insert(newFile);
+			}
+		}
+		
+		//删除多余文件
+//		if(md5s.size()>0) {
+			fileMapper.deleteByMd5s(md5s, pathInfo.getParentId());
+//		}
+		
+		//删除多余文件
+//		if(dirs.size()>0) {
+			fileMapper.deleteByDirs(dirs, pathInfo.getParentId());
+//		}
 	}
 	
 	//设置封面
@@ -143,7 +268,7 @@ public class FileManagerServiceImpl implements FileManagerService {
 		
 		FileEntity fileUpdate=new FileEntity();
 		fileUpdate.setFileId(fileEntity.getParentId());
-		fileUpdate.setCoverId(fileId);
+		fileUpdate.setCoverId(fileId.toString());
 		int i=this.fileMapper.update( fileUpdate);
 		if(i<1) {
 			return new AjaxResult("失败：未能找到上级目录");
@@ -228,6 +353,59 @@ public class FileManagerServiceImpl implements FileManagerService {
 		return this.fileMapper.getFileEntity(fileEntity);
 	}
 
+}
 
+class PathInfo {
+	/** 项目路径前缀(当前文件真实前缀) */
+	private String projectPrefix;
+	/** 项目前缀目录**/
+	private String projectPath;
+	
+	/**当前文件 全路径（真实路径）*/
+	private  String filePah;
+	
+	private Integer projectId;
+	
+	private Long parentId;
 
+	public String getProjectPrefix() {
+		return projectPrefix;
+	}
+
+	public void setProjectPrefix(String projectPrefix) {
+		this.projectPrefix = projectPrefix;
+	}
+
+	public String getProjectPath() {
+		return projectPath;
+	}
+
+	public void setProjectPath(String projectPath) {
+		this.projectPath = projectPath;
+	}
+
+	public String getFilePah() {
+		return filePah;
+	}
+
+	public void setFilePah(String filePah) {
+		this.filePah = filePah;
+	}
+
+	public Integer getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(Integer projectId) {
+		this.projectId = projectId;
+	}
+
+	public Long getParentId() {
+		return parentId;
+	}
+
+	public void setParentId(Long parentId) {
+		this.parentId = parentId;
+	}
+	
 }

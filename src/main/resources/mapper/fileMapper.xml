@@ -43,11 +43,47 @@
 			<if test="coverId !=null">
 			cover_id=#{coverId},
 			</if>
+			<if test="fileName !=null and fileName!='' ">
+			file_name=#{fileName},
+			</if>
+			<if test="show !=null">
+			vk_file.show=#{show},
+			</if>
 		</set>
 		where file_id=#{fileId}
 	</update>
 	
 	<select id="getFileEntity" resultType="com.xiaoshabao.vkan.entity.FileEntity"
+		parameterType="com.xiaoshabao.vkan.entity.FileEntity">
+		select
+		<include refid="fileColumns" />
+		from vk_file
+		<where>
+			<if test="fileId != null and fileId !=''">
+				and file_id=#{fileId}
+			</if>
+			<if test="projectId != null and projectId !=''">
+				and project_id=#{projectId}
+			</if>
+			<if test="fileName != null and fileName !=''">
+				and file_name=#{fileName}
+			</if>
+			<if test="path != null and path !=''">
+				and path=#{path}
+			</if>
+			<if test="md5 != null and md5 !=''">
+				and md5=#{md5}
+			</if>
+			<if test="fileType != null and fileType !=''">
+				and file_type=#{fileType}
+			</if>
+			<if test="parentId != null and parentId !=''">
+				and parent_id=#{parentId}
+			</if>
+		</where>
+	</select>
+	
+	<select id="getFileEntityList" resultType="com.xiaoshabao.vkan.entity.FileEntity"
 		parameterType="com.xiaoshabao.vkan.entity.FileEntity">
 		select
 		<include refid="fileColumns" />
@@ -92,6 +128,7 @@
 		left join vk_file_type b
 		on vk_file.file_type=b.type_id
 		<where>
+			vk_file.show='1'
 			<if test="tagIds!=null">
 			<foreach collection="tagIds" item="list" index="index">
 				<if test="list!=null">
@@ -115,4 +152,26 @@
 		</where>
 		order by b.order_no
 	</select>
+	<delete id="deleteByMd5s">
+		delete from vk_file
+		where parent_id=#{parentId}
+		and file_type not in ('1')
+		<if test="md5s != null and md5s.size>0">
+		and md5 not in 
+		<foreach collection="md5s" item="item" index="index" open="(" separator="," close=")">  
+		   #{item}
+		</foreach>
+		</if>
+	</delete>
+	<delete id="deleteByDirs">
+		delete from vk_file
+		where parent_id=#{parentId}
+		and file_type in ('1')
+		<if test="dirs != null and dirs.size>0">
+		and file_name not in 
+		<foreach collection="dirs" item="item" index="index" open="(" separator="," close=")">  
+		   #{item}
+		</foreach>
+		</if>
+	</delete>
 </mapper>

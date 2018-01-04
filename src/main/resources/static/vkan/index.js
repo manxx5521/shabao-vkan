@@ -58,6 +58,53 @@ $(function() {
 						page.reLoadData();
 					});
 				})
+				
+				//设置视频目录
+				$('#operation_setvodie').click(function(){
+					layer.confirm('确定要将本层目录设置为视频格式吗？', {
+						  btn: ['是的','取消'] //按钮
+					}, function(){
+						$.ajax({
+							type : "POST",
+							url : webroot + "/vkan/file/setVideoProject.json",
+							dataType : "json",
+							data:{'parentId':page.getParentId(),
+								'prefixPath':$('select[name="projectPrefix"]').val()},
+							success : function(data) {
+								if(data.success){
+									layer.msg('更新成功', {icon: 1});
+									page.reLoadData();
+								}else{
+									layer.msg('更新失败', {icon: 1});
+								}
+							}
+						});
+						  
+					});
+				})
+				//更新目录文件
+				$('#operation_resml').click(function(){
+					layer.confirm('确定要将本层目录从新更新吗？', {
+						  btn: ['是的','取消'] //按钮
+					}, function(){
+						$.ajax({
+							type : "POST",
+							url : webroot + "/vkan/file/updateFiles.json",
+							dataType : "json",
+							data:{'parentId':page.getParentId(),
+								'prefixPath':$('select[name="projectPrefix"]').val()},
+							success : function(data) {
+								if(data.success){
+									layer.msg('更新成功', {icon: 1});
+									page.reLoadData();
+								}else{
+									layer.msg('更新失败', {icon: 1});
+								}
+							}
+						});
+						  
+					});
+				})
 			},
 			/** 添加tag标签 */
 			getTagLi : function(tag) {
@@ -128,20 +175,26 @@ $(function() {
 					return path
 				}
 				
+				var paths=new Array();
 				
-				if(fileType==1){
-					if(!!fileDto.coverPath){
-						path=rspath(fileDto.coverPath);
-					}else{
-						path=webroot+"/static/vkan/image/type_dir.png";
+				if(!!fileDto.coverList&&fileDto.coverList.length>0){
+					for(var i in fileDto.coverList){
+						paths.push(rspath(fileDto.coverList[i]));
 					}
-				}else if(fileType==2){
-					path=rspath(fileDto.path);
-				}else if(fileType==3){
-					path=webroot+"/static/vkan/image/type_video.png";
 				}else{
-					path=webroot+"/static/vkan/image/type_other.png";
+					var path='';
+					if(fileType==1){
+						path=webroot+"/static/vkan/image/type_dir.png";
+					}else if(fileType==2){
+						path=rspath(fileDto.path);
+					}else if(fileType==3){
+						path=webroot+"/static/vkan/image/type_video.jpg";
+					}else{
+						path=webroot+"/static/vkan/image/type_other.png";
+					}
+					paths.push(path);
 				}
+				
 				
 				
 				var html='';
@@ -150,7 +203,9 @@ $(function() {
 				html+='    <div class="inner_wrapper_img inner_wrapper_img1">';
 				html+='      <div>';
 				html+='		   <a class="click_file" href="javascript:void(0)" fid="'+fileDto.fileId+'" ftype="'+fileType+'" fpath="'+fileDto.path+'">';
-				html+='          <img title="'+name+'" class="img-min-height" alt="'+name+'" src="'+path+'">';
+				for(var i in paths){
+					html+='       <img title="'+name+'" class="img-min-height" alt="'+name+'" src="'+paths[i]+'">';
+				}
 				html+='		   </a>';
 				html+='      </div>';
 				html+='      <div class="mid_img_count">';
@@ -187,7 +242,9 @@ $(function() {
 				html+='</div>';
 				return html;
 			},
-			/**重新加载数据，清空原有内容*/
+			/**重新加载数据，清空原有内容
+			 * queryType 1、当前查询，2、全部查询，3、上下级查询
+			 * */
 			reLoadData:function(queryType){
 				$('#img-container .border-img-box').remove();
 				$('#img-container').removeAttr('style');

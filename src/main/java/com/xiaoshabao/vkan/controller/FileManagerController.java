@@ -37,6 +37,29 @@ public class FileManagerController{
 		return fileService.addProject(projectName, filePath);
 	}
 	
+	/**
+	 * 设置成视频目录
+	 * @param prarentId
+	 */
+	@RequestMapping(value="/setVideoProject")
+	@ResponseBody
+	public AjaxResult setVideoProject(@RequestParam Long parentId,@RequestParam String prefixPath) {
+		fileService.setVideoProject(parentId, prefixPath);
+		return new AjaxResult(true,"成功");
+	}
+	
+	/**
+	 * 更新文件
+	 * @param prarentId
+	 * @param prefixPath
+	 */
+	@RequestMapping(value="/updateFiles")
+	@ResponseBody
+	public  AjaxResult updateFiles(@RequestParam Long parentId, @RequestParam String prefixPath) {
+		fileService.updateFiles(parentId, prefixPath);
+		return new AjaxResult(true,"成功");
+	}
+	
 
 	/**
 	 * 打开文件

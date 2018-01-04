@@ -1,6 +1,7 @@
 package com.xiaoshabao.vkan.service.impl;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -103,14 +104,19 @@ public class VkanServiceImpl implements VkanService {
 				fileDto.setTagList(tagList);
 				
 				//设置封面
-				Long coverId=fileDto.getCoverId();
+				String coverId=fileDto.getCoverId();
 				if(coverId!=null&&fileDto.getFileType()!=FileType.IMAGE.getCode()) {
-					FileEntity coverReq=new FileEntity();
-					coverReq.setFileId(coverId);
-					FileEntity cover=this.fileMapper.getFileEntity(coverReq);
-					if(cover!=null&&cover.getPath()!=null) {
-						fileDto.setCoverPath(cover.getPath());
+					String[] covers=coverId.split(",");
+					List<String> coverList=new ArrayList<String>(covers.length);
+					for(String id:covers) {
+						FileEntity coverReq=new FileEntity();
+						coverReq.setFileId(Long.valueOf(id));
+						FileEntity cover=this.fileMapper.getFileEntity(coverReq);
+						if(cover!=null&&cover.getPath()!=null) {
+							coverList.add(cover.getPath());
+						}
 					}
+					fileDto.setCoverList(coverList);
 				}
 			}
 		}

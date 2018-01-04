@@ -7,9 +7,11 @@ import com.xiaoshabao.vkan.entity.TagEntity;
 
 public class FileDto extends FileEntity{
 	
-	private String coverPath;
-	
 	private List<TagEntity> tagList;
+	/**
+	 * 封面列表
+	 */
+	private List<String> coverList;
 
 	public List<TagEntity> getTagList() {
 		return tagList;
@@ -19,12 +21,12 @@ public class FileDto extends FileEntity{
 		this.tagList = tagList;
 	}
 
-	public String getCoverPath() {
-		return coverPath;
+	public List<String> getCoverList() {
+		return coverList;
 	}
 
-	public void setCoverPath(String coverPath) {
-		this.coverPath = coverPath;
+	public void setCoverList(List<String> coverList) {
+		this.coverList = coverList;
 	}
 	
 }
