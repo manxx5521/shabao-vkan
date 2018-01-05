@@ -12,7 +12,7 @@
 		${prefix}.project_prefix,${prefix}.project_path,
 		${prefix}.create_time
 	</sql>
-	<insert id="insert" keyProperty="projectId">
+	<insert id="insert" useGeneratedKeys="true" keyProperty="projectId">
 		insert into
 		vk_project
 		(project_id,project_name,project_prefix,project_path,create_time)

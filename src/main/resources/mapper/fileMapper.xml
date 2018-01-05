@@ -150,7 +150,7 @@
 				and vk_file.project_id=#{projectId}
 			</if>
 		</where>
-		order by b.order_no
+		order by b.order_no,vk_file.file_name
 	</select>
 	<delete id="deleteByMd5s">
 		delete from vk_file
