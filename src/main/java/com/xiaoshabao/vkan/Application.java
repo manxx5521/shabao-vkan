@@ -23,11 +23,11 @@ import org.springframework.cache.annotation.EnableCaching;
 //开启缓存注解
 @EnableCaching 
 @MapperScan(basePackages="com.xiaoshabao.**.mapper")
-public class App {
+public class Application {
 
 	public static void main(String[] args) {
 
-		SpringApplication.run(App.class, args);
+		SpringApplication.run(Application.class, args);
 
 	}
 
