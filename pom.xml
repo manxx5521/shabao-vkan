@@ -119,7 +119,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<maimClass>com.xiaoshabao.vkan.App</maimClass>
+					<maimClass>com.xiaoshabao.vkan.Application</maimClass>
 					<fork>true</fork>
 				</configuration>
 			</plugin>
